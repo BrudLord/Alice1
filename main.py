@@ -5,6 +5,8 @@ import os
 # библиотека, которая нам понадобится для работы с JSON
 import json
 
+
+second_game = False
 # создаём приложение
 # мы передаём __name__, в нем содержится информация, 
 # в каком модуле мы находимся.
@@ -60,13 +62,13 @@ def main():
 
 
 def handle_dialog(req, res):
+    global second_game
     user_id = req['session']['user_id']
 
     if req['session']['new']:
         # Это новый пользователь.
         # Инициализируем сессию и поприветствуем его.
         # Запишем подсказки, которые мы ему покажем в первый раз
-
         sessionStorage[user_id] = {
             'suggests': [
                 "Не хочу.",
@@ -75,7 +77,10 @@ def handle_dialog(req, res):
             ]
         }
         # Заполняем текст ответа
-        res['response']['text'] = 'Привет! Купи слона!'
+        if second_game:
+            res['response']['text'] = 'И снова здравствуйте! Купите кролика!'
+        else:
+            res['response']['text'] = 'Привет! Купи слона!'
         # Получим подсказки
         res['response']['buttons'] = get_suggests(user_id)
         return
@@ -91,18 +96,28 @@ def handle_dialog(req, res):
     if (req['request']['original_utterance'].lower() in ['ладно', 'куплю', 'покупаю', 'хорошо'] or 'куп' in
             req['request']['original_utterance'].lower()):
         # Пользователь согласился, прощаемся.
-        res['response']['text'] = 'Слона можно найти на Яндекс.Маркете!'
-        res['response']['end_session'] = True
+        if second_game:
+            res['response']['text'] = 'Кролика можно найти на Яндекс.Маркете!'
+        else:
+            res['response']['text'] = 'Слона можно найти на Яндекс.Маркете!'
+        second_game = not second_game
+        if not second_game:
+            res['response']['end_session'] = True
         return
 
     # Если нет, то убеждаем его купить слона!
-    res['response']['text'] = \
-        f"Все говорят '{req['request']['original_utterance']}', а ты купи слона!"
+    if second_game:
+        res['response']['text'] = \
+            f"Все говорят '{req['request']['original_utterance']}', а ты купи кролика!"
+    else:
+        res['response']['text'] = \
+            f"Все говорят '{req['request']['original_utterance']}', а ты купи слона!"
     res['response']['buttons'] = get_suggests(user_id)
 
 
 # Функция возвращает две подсказки для ответа.
 def get_suggests(user_id):
+    global second_game
     session = sessionStorage[user_id]
 
     # Выбираем две первые подсказки из массива.
@@ -117,22 +132,40 @@ def get_suggests(user_id):
 
     # Если осталась только одна подсказка, предлагаем подсказку
     # со ссылкой на Яндекс.Маркет.
-    if len(suggests) < 2:
+    if second_game:
+        if len(suggests) < 2:
+            suggests.append({
+                "title": "Ладно",
+                "url": "https://market.yandex.ru/search?text=кролик",
+                "hide": True
+            })
         suggests.append({
-            "title": "Ладно",
+            "title": "Я покупаю",
+            "url": "https://market.yandex.ru/search?text=кролик",
+            "hide": True
+        })
+        suggests.append({
+            "title": "Я куплю",
+            "url": "https://market.yandex.ru/search?text=кролик",
+            "hide": True
+        })
+    else:
+        if len(suggests) < 2:
+            suggests.append({
+                "title": "Ладно",
+                "url": "https://market.yandex.ru/search?text=слон",
+                "hide": True
+            })
+        suggests.append({
+            "title": "Я покупаю",
             "url": "https://market.yandex.ru/search?text=слон",
             "hide": True
         })
-    suggests.append({
-        "title": "Я покупаю",
-        "url": "https://market.yandex.ru/search?text=слон",
-        "hide": True
-    })
-    suggests.append({
-        "title": "Я куплю",
-        "url": "https://market.yandex.ru/search?text=слон",
-        "hide": True
-    })
+        suggests.append({
+            "title": "Я куплю",
+            "url": "https://market.yandex.ru/search?text=слон",
+            "hide": True
+        })
 
     return suggests
 
