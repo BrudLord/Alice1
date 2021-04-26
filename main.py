@@ -124,6 +124,16 @@ def get_suggests(user_id):
             "url": "https://market.yandex.ru/search?text=слон",
             "hide": True
         })
+    suggests.append({
+        "title": "Я покупаю",
+        "url": "https://market.yandex.ru/search?text=слон",
+        "hide": True
+    })
+    suggests.append({
+        "title": "Я куплю",
+        "url": "https://market.yandex.ru/search?text=слон",
+        "hide": True
+    })
 
     return suggests
 
