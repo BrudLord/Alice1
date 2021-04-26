@@ -103,6 +103,11 @@ def handle_dialog(req, res):
         second_game = not second_game
         if not second_game:
             res['response']['end_session'] = True
+        else:
+            res['response']['text'] = 'И снова здравствуйте! Купите кролика!'
+            # Получим подсказки
+            res['response']['buttons'] = get_suggests(user_id)
+            return
         return
 
     # Если нет, то убеждаем его купить слона!
